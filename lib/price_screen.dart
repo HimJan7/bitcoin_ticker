@@ -13,29 +13,45 @@ class PriceScreen extends StatefulWidget {
 }
 
 class _PriceScreenState extends State<PriceScreen> {
-  double price = 0;
+  double btcPrice = 0, ethPrice = 0, ltcPrice = 0;
   String currency = 'USD';
+  double? temp, temp1, temp2;
+  String? selectedCurrency = 'USD';
 
-  dynamic getPrice(currency) async {
+  void getPrice(selectedCurrency) async {
     String url =
-        'https://rest.coinapi.io/v1/exchangerate/BTC/$currency?apikey=$apiKey';
+        'https://rest.coinapi.io/v1/exchangerate/BTC/$selectedCurrency?apikey=$apiKey';
 
     http.Response response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       String data = response.body;
       var decodedData = jsonDecode(data);
-      double temp = decodedData['rate'];
-
-      print(temp);
-      setState(() {
-        price = double.parse((temp).toStringAsFixed(2));
-      });
-    } else {
-      print(response.statusCode);
+      temp = decodedData['rate'];
     }
-  }
+    url =
+        'https://rest.coinapi.io/v1/exchangerate/ETH/$selectedCurrency?apikey=$apiKey';
 
-  String? selectedCurrency = 'USD';
+    http.Response response1 = await http.get(Uri.parse(url));
+    if (response1.statusCode == 200) {
+      String data = response1.body;
+      var decodedData = jsonDecode(data);
+      temp1 = decodedData['rate'];
+    }
+    url =
+        'https://rest.coinapi.io/v1/exchangerate/LTC/$selectedCurrency?apikey=$apiKey';
+
+    http.Response response2 = await http.get(Uri.parse(url));
+    if (response2.statusCode == 200) {
+      String data = response2.body;
+      var decodedData = jsonDecode(data);
+      temp2 = decodedData['rate'];
+    }
+    setState(() {
+      btcPrice = double.parse((temp!).toStringAsFixed(2));
+      ethPrice = double.parse((temp1!).toStringAsFixed(2));
+      ltcPrice = double.parse((temp2!).toStringAsFixed(2));
+    });
+  }
 
   Widget cupertinoChild() {
     List<Text> pickerItems = [];
@@ -46,7 +62,8 @@ class _PriceScreenState extends State<PriceScreen> {
     return CupertinoPicker(
       itemExtent: 32.0,
       onSelectedItemChanged: (selectedIndex) {
-        getPrice(currency);
+        selectedCurrency = currenciesList[selectedIndex];
+        getPrice(selectedCurrency);
       },
       children: pickerItems,
     );
@@ -70,7 +87,7 @@ class _PriceScreenState extends State<PriceScreen> {
         onChanged: (value) {
           setState(() {
             selectedCurrency = value;
-            getPrice(currency);
+            getPrice(selectedCurrency);
           });
         });
   }
@@ -89,6 +106,7 @@ class _PriceScreenState extends State<PriceScreen> {
         title: Text('🤑 Coin Ticker'),
       ),
       body: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Padding(
@@ -102,7 +120,7 @@ class _PriceScreenState extends State<PriceScreen> {
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
                 child: Text(
-                  '1 BTC = $price USD',
+                  '1 BTC = $btcPrice $selectedCurrency',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 20.0,
@@ -123,7 +141,7 @@ class _PriceScreenState extends State<PriceScreen> {
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
                 child: Text(
-                  '1 BTC = $price USD',
+                  '1 ETH = $ethPrice $selectedCurrency',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 20.0,
@@ -144,7 +162,7 @@ class _PriceScreenState extends State<PriceScreen> {
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
                 child: Text(
-                  '1 BTC = $price USD',
+                  '1 LTC = $ltcPrice $selectedCurrency',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 20.0,
@@ -156,6 +174,7 @@ class _PriceScreenState extends State<PriceScreen> {
           ),
           Container(
               height: 150.0,
+              padding: EdgeInsets.only(bottom: 30),
               alignment: Alignment.center,
               color: Colors.lightBlue,
               child: Platform.isIOS ? cupertinoChild() : dropDownChild()),
